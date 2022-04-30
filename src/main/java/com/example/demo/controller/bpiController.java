@@ -1,10 +1,8 @@
 package com.example.demo.controller;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,11 +17,15 @@ import org.springframework.web.client.RestTemplate;
 
 import com.example.demo.entity.Bpi;
 import com.example.demo.repository.BpiRepository;
+import com.example.demo.util.CurrencyUtil;
 import com.example.demo.util.DateUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping("/")
-public class testController {
+public class bpiController {
 	 @Autowired
 	 BpiRepository bpiRepository;
 	 
@@ -94,18 +96,30 @@ public class testController {
 	//測試呼叫刪除幣別對應表資料 API。
 	@DeleteMapping("bpi/{code}")
 	public void deleteBpi(@PathVariable String code) {
-			bpiRepository.deleteById(code);;
+			bpiRepository.deleteById(code);
 	}
 	
 	//測試呼叫刪除幣別對應表資料 API。
 	@GetMapping("transData")
-	public String transData() {
+	public String transData() throws JsonMappingException, JsonProcessingException, JSONException {
 		RestTemplate restTemplate=new RestTemplate();
 		JSONObject request = new JSONObject(restTemplate.getForObject(bpiUrl, String.class));
 		JSONObject response = new JSONObject();
 		response.put("更新時間",DateUtil.formatStrUTCToDateStr(request.getJSONObject("time").get("updated").toString()));
-		System.out.println(request.getJSONObject("bpi").toString(1));
-		response.put("幣別相關資訊","");
+		
+		HashMap<String,Object> jsonMap = new ObjectMapper().readValue(request.getJSONObject("bpi").toString(), HashMap.class);
+		HashMap<String, Map<String,String>> bpisMap = new HashMap<String, Map<String,String>>(); 
+		
+		jsonMap.entrySet().stream().forEach( key -> {
+			Map<String,String>  dataMap = (Map<String,String>)key.getValue();
+			Map<String,String>  bpiMap = new HashMap<String,String>();
+			bpiMap.put("幣別", dataMap.get("code"));
+			bpiMap.put("幣別中文名稱", CurrencyUtil.getCurrencyInstance(dataMap.get("code")));
+			bpiMap.put("匯率", dataMap.get("rate"));
+			bpisMap.put(key.getKey(), bpiMap);
+		});
+		
+		response.put("幣別相關資訊",new JSONObject(bpisMap));
 		return response.toString();
 	}
 	
