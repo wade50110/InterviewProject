@@ -7,7 +7,7 @@ CREATE TABLE student (
 );
 
 CREATE TABLE bpi (
-	id INT AUTO_INCREMENT,
+--	id INT AUTO_INCREMENT,
     code VARCHAR(30),
     symbol VARCHAR(30),
     rate VARCHAR(30),

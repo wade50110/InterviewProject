@@ -11,10 +11,6 @@ import javax.persistence.Table;
 @Table(name = "bpi")
 public class Bpi {
 	
-		@GeneratedValue(strategy = GenerationType.IDENTITY)
-		@Column(name="id")
-		private String id;
-		
 		@Id
 		@Column(name="code")
 		private String code;
@@ -71,13 +67,6 @@ public class Bpi {
 			this.rate_float = rate_float;
 		}
 
-		public String getId() {
-			return id;
-		}
-
-		public void setId(String id) {
-			this.id = id;
-		}
 		
 		
 }
